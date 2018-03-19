@@ -1,0 +1,80 @@
+*** fatrace.c.org	2015-11-08 10:03:36.000000000 +0100
+--- fatrace.c	2016-04-17 15:09:29.013599337 +0200
+***************
+*** 37,42 ****
+--- 37,43 ----
+  #include <sys/time.h>
+  #include <sys/types.h>
+  #include <ctype.h>
++ #include <sys/utsname.h>
+  
+  #define BUFSIZE 256*1024
+  
+***************
+*** 375,397 ****
+          _exit(1);
+  }
+  
+  int
+  main (int argc, char** argv)
+  {
+      int fan_fd;
+      int res;
+      int err;
+      void *buffer;
+      struct fanotify_event_metadata *data;
+      struct sigaction sa;
+      struct timeval event_time;
+  
+      /* always ignore events from ourselves (writing log file) */
+      ignored_pids[ignored_pids_len++] = getpid();
+  
+      parse_args (argc, argv);
+  
+!     fan_fd = fanotify_init (0, KERNEL_O_LARGEFILE);
+      if (fan_fd < 0) {
+          err = errno;
+          fprintf (stderr, "Cannot initialize fanotify: %s\n", strerror (err));
+--- 376,417 ----
+          _exit(1);
+  }
+  
++ /* Define string for ARM hack */
++ #define ARCH_ARM "armv"
++ 
+  int
+  main (int argc, char** argv)
+  {
+      int fan_fd;
+      int res;
+      int err;
++     int fanot_flag = O_LARGEFILE;
+      void *buffer;
+      struct fanotify_event_metadata *data;
+      struct sigaction sa;
+      struct timeval event_time;
++     struct utsname uts;
+  
+      /* always ignore events from ourselves (writing log file) */
+      ignored_pids[ignored_pids_len++] = getpid();
+  
+      parse_args (argc, argv);
+  
+!     /*
+!      * Check architecture: if we are running on ARM, omit KERNEL_O_LARGEFILE from fanotify_init invocation
+!      */
+! 
+!     if (uname(&uts)) {
+!       err = errno;
+!       fprintf (stderr, "Cannot obtain machine data: %s\n", strerror (err));
+!       exit(1);
+!     }
+! 
+!     if (strncmp(uts.machine, ARCH_ARM, sizeof(ARCH_ARM) - 1)) {
+!       fanot_flag = KERNEL_O_LARGEFILE;
+!     }
+!     
+!     fan_fd = fanotify_init (0, fanot_flag);
+      if (fan_fd < 0) {
+          err = errno;
+          fprintf (stderr, "Cannot initialize fanotify: %s\n", strerror (err));
