@@ -7,7 +7,7 @@ pkgdesc="Reports file access events from all running processes, patched for armv
 arch=("armv6h" "armv7h")
 url="http://launchpad.net/fatrace"
 license=('GPL')
-depends=('python' 'powertop')
+depends=('python' 'powertop') # should be optional if only fatrace.c needed and not the py stuff
 source=("http://launchpad.net/fatrace/trunk/${pkgver}/+download/$pkgname-$pkgver.tar.bz2" "fatrace.patch")
 sha256sums=("50e71706f2cad4efc37c23bd292a2d3aa53dd883506e910267b2eeb5b241f66b" "caa9c7dc0792ab10f61296e98151a020947dbac3cf009c2cb57f432c561a8409")
 
